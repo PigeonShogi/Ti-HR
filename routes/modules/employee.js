@@ -1,11 +1,9 @@
 const express = require('express')
 const router = express.Router()
 
-router.post('/', (req, res) => {
-  res.status(200).json({
-    status: 200,
-    message: '成功建立新員工資料'
-  })
-})
+router.put('/password')
+router.get('/absences')
+router.put('/:employee_id/absence')
+router.post('/')
 
 module.exports = router
