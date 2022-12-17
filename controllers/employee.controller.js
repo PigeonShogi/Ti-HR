@@ -1,7 +1,7 @@
 const { Employee } = require('../models')
 
 module.exports = {
-  addEmployee: async (req, res) => {
+  postEmployee: async (req, res) => {
     const { code, fullName, identity } = req.body
     const newEmployee = await Employee.create({
       code,
