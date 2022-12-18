@@ -30,8 +30,11 @@
   },
   "dependencies": {
     "dayjs": "^1.11.7",
+    "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "mysql2": "^2.3.3",
+    "passport": "^0.6.0",
+    "passport-jwt": "^4.0.0",
     "sequelize": "^6.27.0",
     "sequelize-cli": "^6.5.2"
   }
