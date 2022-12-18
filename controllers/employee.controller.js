@@ -36,12 +36,10 @@ module.exports = {
   },
   // POST /api/employees 人資 admin 可以新增一筆員工記錄
   postEmployee: async (req, res) => {
-    const { code, fullName, identity } = req.body
+    const { code, fullName } = req.body
     const newEmployee = await Employee.create({
       code,
-      fullName,
-      password: 'titaner',
-      identity
+      fullName
     })
     res.status(200).json({
       status: 200,
