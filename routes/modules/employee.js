@@ -1,7 +1,8 @@
 const express = require('express')
 const router = express.Router()
-const { postEmployee } = require('../../controllers/employee.controller')
+const { postEmployee, signIn } = require('../../controllers/employee.controller')
 
+router.post('/signIn', signIn)
 router.put('/password')
 router.get('/absences')
 router.put('/:employee_id/absence')
