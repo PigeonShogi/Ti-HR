@@ -17,7 +17,8 @@ module.exports = (sequelize, DataTypes) => {
     workingDay: DataTypes.DATEONLY,
     state: DataTypes.STRING,
     in: DataTypes.DATE,
-    out: DataTypes.DATE
+    out: DataTypes.DATE,
+    EmployeeId: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'Punch',
