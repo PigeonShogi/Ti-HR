@@ -1,4 +1,5 @@
 const { Employee } = require('../models')
+const jwt = require('jsonwebtoken')
 
 module.exports = {
   // POST /api/employees/signIn 員工可以登入系統
@@ -9,9 +10,11 @@ module.exports = {
       where: { code: employeeCode },
       raw: true
     })
-    // 若密碼輸入錯誤，要利用變數 checkCodeAndPassword 增加累計錯誤次數
+    // 找出員工編號及密碼匹配正確的員工資料
     const checkCodeAndPassword = await Employee.findOne({
-      where: { code: employeeCode, password }
+      where: { code: employeeCode, password },
+      attributes: { exclude: ['id', 'password', 'createdAt', 'updatedAt'] },
+      raw: true
     })
     try {
       // 檢查員工編號是否存在
@@ -40,9 +43,15 @@ module.exports = {
         { typoCount: 0 },
         { where: { code: employeeCode } }
       )
+      const employeeData = checkCodeAndPassword
+      const token = jwt.sign(employeeData, process.env.JWT_SECRET, { expiresIn: '23h' })
       res.status(200).json({
         status: 200,
-        message: '登入成功'
+        message: '登入成功',
+        data: {
+          token,
+          employee: employeeData
+        }
       })
     } catch (err) { next(err) }
   },
