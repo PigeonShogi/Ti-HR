@@ -2,7 +2,7 @@ const { Employee } = require('../models')
 
 module.exports = {
   // POST /api/employees/signIn 員工可以登入系統
-  signIn: async (req, res) => {
+  signIn: async (req, res, next) => {
     const { employeeCode, password } = req.body
     // 稍後要利用變數 checkCode 確認員工編號是否存在
     const checkCode = await Employee.findOne({
@@ -16,18 +16,24 @@ module.exports = {
     try {
       // 檢查員工編號是否存在
       if (!checkCode) {
-        throw new Error('你輸入的員工編號並不存在')
+        const err = new Error('你輸入的員工編號並不存在')
+        err.status = 401
+        throw err
       }
       // 檢查密碼錯誤次數是否達五次以上
       if (checkCode.typoCount >= 5) {
-        throw new Error('密碼輸入錯誤累計5次以上，系統拒絕你的登入請求。請向人資同仁尋求協助。')
+        const err = new Error('密碼輸入錯誤累計5次以上，系統拒絕你的登入請求。請向人資同仁尋求協助。')
+        err.status = 401
+        throw err
       }
       // 檢查密碼是否輸入正確
       if (!checkCodeAndPassword) {
         await Employee.update(
           { typoCount: ++checkCode.typoCount },
           { where: { code: employeeCode } })
-        throw new Error(`密碼錯誤，累計錯誤次數${checkCode.typoCount}次。累計錯誤5次將導致無法登入，請小心。`)
+        const err = new Error(`密碼錯誤，累計錯誤次數${checkCode.typoCount}次。累計錯誤5次將導致無法登入，請小心。`)
+        err.status = 401
+        throw err
       }
       // 若密碼輸入錯誤累計次數未達五次，在登入成功後將累計次數歸零。
       await Employee.update(
@@ -38,24 +44,26 @@ module.exports = {
         status: 200,
         message: '登入成功'
       })
-    } catch (err) {
-      res.status(401).json({
-        status: 401,
-        message: err.message
-      })
-    }
+    } catch (err) { next(err) }
   },
   // POST /api/employees 人資 admin 可以新增一筆員工記錄
-  postEmployee: async (req, res) => {
+  postEmployee: async (req, res, next) => {
     const { code, fullName } = req.body
-    const newEmployee = await Employee.create({
-      code,
-      fullName
-    })
-    res.status(200).json({
-      status: 200,
-      message: '成功建立新員工記錄',
-      data: newEmployee
-    })
+    try {
+      if (!code || !fullName) {
+        const err = new Error('員工編號及姓名都是必填')
+        err.status = 403
+        throw err
+      }
+      const newEmployee = await Employee.create({
+        code,
+        fullName
+      })
+      res.status(200).json({
+        status: 200,
+        message: '成功建立新員工記錄',
+        data: newEmployee
+      })
+    } catch (err) { next(err) }
   }
 }
