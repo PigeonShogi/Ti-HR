@@ -10,19 +10,24 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       code: {
+        allowNull: false,
         type: Sequelize.STRING
       },
       identity: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        defaultValue: 'employee'
       },
       full_name: {
+        allowNull: false,
         type: Sequelize.STRING
       },
       password: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        defaultValue: 'titaner'
       },
       typo_count: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        defaultValue: 0
       },
       created_at: {
         allowNull: false,
