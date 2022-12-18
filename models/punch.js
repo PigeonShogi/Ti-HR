@@ -13,8 +13,8 @@ module.exports = (sequelize, DataTypes) => {
   Punch.init({
     workingDay: DataTypes.DATEONLY,
     state: DataTypes.STRING,
-    in: DataTypes.DATE,
-    out: DataTypes.DATE,
+    in: DataTypes.STRING,
+    out: DataTypes.STRING,
     EmployeeId: DataTypes.INTEGER
   }, {
     sequelize,
