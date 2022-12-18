@@ -14,15 +14,26 @@ module.exports = {
       where: { code: employeeCode, password }
     })
     try {
+      // 檢查員工編號是否存在
       if (!checkCode) {
         throw new Error('你輸入的員工編號並不存在')
       }
+      // 檢查密碼錯誤次數是否達五次以上
+      if (checkCode.typoCount >= 5) {
+        throw new Error('密碼輸入錯誤累計5次以上，系統拒絕你的登入請求。請向人資同仁尋求協助。')
+      }
+      // 檢查密碼是否輸入正確
       if (!checkCodeAndPassword) {
         await Employee.update(
           { typoCount: ++checkCode.typoCount },
           { where: { code: employeeCode } })
-        throw new Error('密碼錯誤')
+        throw new Error(`密碼錯誤，累計錯誤次數${checkCode.typoCount}次。累計錯誤5次將導致無法登入，請小心。`)
       }
+      // 若密碼輸入錯誤累計次數未達五次，在登入成功後將累計次數歸零。
+      await Employee.update(
+        { typoCount: 0 },
+        { where: { code: employeeCode } }
+      )
       res.status(200).json({
         status: 200,
         message: '登入成功'
