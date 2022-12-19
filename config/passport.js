@@ -7,17 +7,17 @@ const jwtOptions = {
   secretOrKey: process.env.JWT_SECRET
 }
 
-passport.use(new JwtStrategy(jwtOptions, function (jwtPayload, done) {
-  Employee.findOne({ code: jwtPayload.code }, function (err, user) {
-    if (err) {
-      return done(err, false)
-    }
-    if (user) {
-      return done(null, user)
-    } else {
-      return done(null, false)
-    }
-  })
+passport.use(new JwtStrategy(jwtOptions, async (jwtPayload, done) => {
+  try {
+    const user = await Employee.findOne({
+      where: { code: jwtPayload.code },
+      attributes: { exclude: ['id', 'password', 'createdAt', 'updatedAt'] },
+      raw: true
+    })
+    return done(null, user)
+  } catch (err) {
+    return done(err, false)
+  }
 }))
 
 module.exports = passport
