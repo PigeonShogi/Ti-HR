@@ -7,7 +7,7 @@ module.exports = {
     const today = dayjs().format().slice(0, 10)
     const time = dayjs().format().slice(11, 19)
     const punch = await Punch.findOne({
-      where: { EmployeeId: 3, workingDay: today }
+      where: { EmployeeId: req.user.id, workingDay: today }
     })
     try {
       if (!punch) {
@@ -15,7 +15,7 @@ module.exports = {
           workingDay: today,
           state: '完成上班打卡',
           in: time,
-          EmployeeId: 3
+          EmployeeId: req.user.id
         })
         res.status(200).json({
           status: 200,
@@ -23,7 +23,10 @@ module.exports = {
         })
       }
       await punch.update(
-        { out: time },
+        {
+          state: '完成下班打卡',
+          out: time
+        },
         { where: { EmployeeId: 3 } })
       res.status(200).json({
         status: 200,
