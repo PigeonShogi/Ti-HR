@@ -1,9 +1,9 @@
 const express = require('express')
 const router = express.Router()
 const { apiErrorHandler } = require('../../middleware/error-handler')
-const { postEmployee } = require('../../controllers/employee.controller')
+const { postEmployee, putPassword } = require('../../controllers/employee.controller')
 
-router.put('/password')
+router.put('/password', putPassword)
 router.get('/absences')
 router.put('/:employee_id/absence')
 router.post('/', postEmployee)

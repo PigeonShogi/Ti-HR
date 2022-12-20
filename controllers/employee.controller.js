@@ -1,5 +1,5 @@
+const bcrypt = require('bcryptjs')
 const { Employee } = require('../models')
-const jwt = require('jsonwebtoken')
 
 module.exports = {
   // POST /api/employees 人資 admin 可以新增一筆員工記錄
@@ -26,6 +26,32 @@ module.exports = {
         status: 200,
         message: '成功建立新員工記錄',
         data: newEmployee
+      })
+    } catch (err) { next(err) }
+  },
+  // PUT /api/employees/password
+  putPassword: async (req, res, next) => {
+    const { password, newPassword, newPasswordConfirm } = req.body
+    try {
+      const employee = await Employee.findByPk(req.user.id)
+      if (!bcrypt.compareSync(password, employee.password)) {
+        const err = new Error('舊密碼輸入不正確')
+        err.status = 403
+        throw err
+      }
+      if (newPassword !== newPasswordConfirm) {
+        const err = new Error('新密碼與確認新密碼不一致')
+        err.status = 403
+        throw err
+      }
+      await Employee.update({ password: await bcrypt.hashSync(newPassword, bcrypt.genSaltSync(10)) }, {
+        where: {
+          id: req.user.id
+        }
+      })
+      res.status(200).json({
+        status: 200,
+        message: '更改密碼成功'
       })
     } catch (err) { next(err) }
   }
