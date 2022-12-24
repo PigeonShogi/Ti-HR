@@ -11,7 +11,8 @@ passport.use(new JwtStrategy(jwtOptions, async (jwtPayload, done) => {
   try {
     const user = await Employee.findOne({
       where: { code: jwtPayload.code },
-      attributes: { exclude: ['id', 'password', 'createdAt', 'updatedAt'] },
+      // 以下是 JWT 不需夾帶的訊息
+      attributes: { exclude: ['password', 'createdAt', 'updatedAt'] },
       raw: true
     })
     return done(null, user)
