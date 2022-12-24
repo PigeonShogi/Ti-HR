@@ -11,7 +11,8 @@ module.exports = {
       },
       code: {
         allowNull: false,
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        unique: true
       },
       identity: {
         type: Sequelize.STRING,

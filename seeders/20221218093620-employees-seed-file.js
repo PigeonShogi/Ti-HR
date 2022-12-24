@@ -7,6 +7,7 @@ module.exports = {
       Array.from(employeeData, value => ({
         code: value.code,
         full_name: value.full_name,
+        identity: value.identity || 'employee',
         created_at: new Date(),
         updated_at: new Date()
       })
