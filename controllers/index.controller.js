@@ -3,6 +3,13 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 
 module.exports = {
+  // GET / 開發人員可以連上 localhost:8000
+  getRoot: (req, res) => {
+    res.status(200).json({
+      status: '200 (OK)',
+      message: '伺服器運作中'
+    })
+  },
   // POST /api/employees/signIn 員工可以登入系統
   signIn: async (req, res, next) => {
     const { employeeCode, password } = req.body
