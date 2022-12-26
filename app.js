@@ -12,8 +12,10 @@ const corsOptions = {
     'http://localhost:5174'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['content-type', 'authorization'],
-  preflightContinue: true
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  preflightContinue: false,
+  optionsSuccessStatus: 200
 }
 const PORT = process.env.PORT || 8000
 
