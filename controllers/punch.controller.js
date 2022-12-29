@@ -31,7 +31,7 @@ module.exports = {
           dayjs(punch.createdAt)) / (8 * 60 * 60 * 1000) * 100
         let state = ''
         if (attendanceStandard < 100) {
-          state = '出勤時數未達標準'
+          state = '警告：出勤時數未達標準'
         } else if (attendanceStandard >= 100) {
           state = '出勤時數已達標準'
         } else {
