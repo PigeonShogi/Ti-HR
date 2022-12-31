@@ -81,11 +81,7 @@ module.exports = {
         err.status = 404
         throw err
       }
-      // 暫且回傳以下訊息。下次提交commit時改為調用打卡方法。
-      res.status(200).json({
-        status: 200,
-        message: '雜湊值比對結果：合格'
-      })
+      next()
     } catch (err) { next(err) }
   }
 }

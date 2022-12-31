@@ -5,7 +5,7 @@ const {
   postPunch, twoDCodePunch
 } = require('../../controllers/punch.controller')
 
-router.get('/:encrypted_value/', twoDCodePunch)
+router.get('/:encrypted_value/', twoDCodePunch, postPunch)
 router.post('/', postPunch)
 router.use('/', apiErrorHandler)
 
