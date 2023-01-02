@@ -22,13 +22,13 @@ const corsOptions = {
   optionsSuccessStatus: 200
 }
 const PORT = process.env.PORT || 8000
-
+// 引用排程
 const job = require('./tools/schedule')
 
 app.use(cors(corsOptions))
 app.use(express.urlencoded({ extended: true }))
 app.use(router)
-
+// 執行排程
 job.start()
 
 app.listen(PORT, () => {
