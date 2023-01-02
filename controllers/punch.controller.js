@@ -1,10 +1,50 @@
-const { Punch } = require('../models')
+const { Employee, Punch } = require('../models')
 const bcrypt = require('bcryptjs')
 const dayjs = require('dayjs')
 const { today } = require('../tools/day')
 const { ipArray } = require('../data/ip')
 
 module.exports = {
+  // GET /api/punches 管理者可以檢視所有打卡記錄
+  getPunches: async (req, res, next) => {
+    try {
+      let page = Number(req.query.page)
+      // 如果 req.query 是不恰當的值，將之轉換為 1，以免預期外的錯誤發生。
+      if (!page || typeof page !== 'number') {
+        page = 1
+      }
+      // 後端同一時間只回傳十筆資料給前端渲染
+      const limit = 10
+      const offset = (page - 1) * limit
+      if (req.user.identity !== 'admin') {
+        const err = new Error('你的權限無法提出此請求')
+        err.status = 403
+        throw err
+      }
+      const { count, rows } = await Punch.findAndCountAll({
+        include: [
+          {
+            model: Employee,
+            attributes: ['code', 'full_name']
+          }
+        ],
+        order: [
+          ['working_day', 'DESC'],
+          [Employee, 'code', 'ASC']
+        ],
+        limit,
+        offset,
+        nest: true,
+        raw: true
+      })
+      res.status(200).json({
+        status: 200,
+        message: `成功調閱打卡記錄（第${page}頁）`,
+        count,
+        data: rows
+      })
+    } catch (err) { next(err) }
+  },
   // POST /api/punches 員工可以打卡
   postPunch: async (req, res, next) => {
     const today = dayjs().format().slice(0, 10)
