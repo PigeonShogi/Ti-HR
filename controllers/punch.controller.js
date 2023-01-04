@@ -99,7 +99,7 @@ module.exports = {
       next(err)
     }
   },
-  // GET /api/punches/:encrypted_value
+  // GET /api/punches/:encrypted_value 員工可以掃描二維碼打卡
   twoDCodePunch: (req, res, next) => {
     try {
       // 如果打卡路由的雜湊值（:encrypted_value）含有 slash，先將之還原為斜線符號再行比對。
