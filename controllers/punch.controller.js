@@ -43,7 +43,9 @@ module.exports = {
         count,
         data: rows
       })
-    } catch (err) { next(err) }
+    } catch (err) {
+      next(err)
+    }
   },
   // POST /api/punches 員工可以打卡
   postPunch: async (req, res, next) => {
@@ -122,6 +124,44 @@ module.exports = {
         throw err
       }
       next()
-    } catch (err) { next(err) }
+    } catch (err) {
+      next(err)
+    }
+  },
+  // PUT /api/punches/:punch_id/state 管理者可以將缺勤狀態改為到勤
+  putState: async (req, res, next) => {
+    try {
+      if (req.user.identity === 'admin') {
+        const punchId = req.params.punch_id
+        const punch = await Punch.update(
+          { state: '出勤時數已達標準' },
+          {
+            where: {
+              id: punchId
+            }
+          }
+        )
+        // punch[0] === 0 表示資料庫中並無該筆資料
+        if (punch[0] === 0) {
+          res.status(404).json({
+            status: 404,
+            message: '查無記錄，無法更改。',
+            data: punch
+          })
+        } else {
+          res.status(200).json({
+            status: 200,
+            message: '已將缺勤狀態改為到勤',
+            data: punch
+          })
+        }
+      } else {
+        const err = new Error('你的權限無法提出此請求')
+        err.status = 403
+        throw err
+      }
+    } catch (err) {
+      next(err)
+    }
   }
 }
