@@ -22,6 +22,9 @@ module.exports = {
         throw err
       }
       const { count, rows } = await Punch.findAndCountAll({
+        attributes: {
+          exclude: ['createdAt', 'updatedAt']
+        },
         include: [
           {
             model: Employee,
@@ -50,7 +53,6 @@ module.exports = {
   // POST /api/punches 員工可以打卡
   postPunch: async (req, res, next) => {
     const today = dayjs().format().slice(0, 10)
-    const time = dayjs().format().slice(11, 19)
     try {
       // 從資料表中找出當天的打卡記錄，若無則新建打卡記錄。
       const [punch, created] = await Punch.findOrCreate({
@@ -58,7 +60,7 @@ module.exports = {
         defaults: {
           workingDay: today,
           state: '完成上班打卡',
-          in: time,
+          in: dayjs().format(),
           EmployeeId: req.user.id
         },
         raw: true
@@ -71,15 +73,13 @@ module.exports = {
         })
         // findOrCreate() 的結果若是找到打卡記錄（created === undefined）就處理下班打卡邏輯
       } else if (!created) {
-        // 計算上下班時間差，並以百分比顯示，低於 100% 視為缺勤。
-        const attendanceStandard =
-          (dayjs(punch.updatedAt).diff(dayjs(punch.createdAt)) /
-            (8 * 60 * 60 * 1000)) *
-          100
-        let state = ''
-        if (attendanceStandard < 100) {
+        // 計算上班打卡至目前為止的時間，計算結果為 n 小時。
+        const workingHours =
+          dayjs(punch.out).diff(dayjs(punch.in)) / (60 * 60 * 1000)
+        let state
+        if (workingHours < 8) {
           state = '警告：出勤時數未達標準'
-        } else if (attendanceStandard >= 100) {
+        } else if (workingHours >= 8) {
           state = '出勤時數已達標準'
         } else {
           state = '工時異常'
@@ -87,14 +87,14 @@ module.exports = {
         await Punch.update(
           {
             state,
-            out: time
+            out: dayjs().format()
           },
           { where: { EmployeeId: req.user.id } }
         )
         res.status(200).json({
           status: 200,
           message: '下班打卡成功',
-          attendanceStandard
+          data: workingHours
         })
       }
     } catch (err) {
