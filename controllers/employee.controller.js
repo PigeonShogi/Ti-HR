@@ -4,11 +4,11 @@ const { generateQR, generateEncryptedQR } = require('../tools/qr-code')
 const { today } = require('../tools/day')
 
 module.exports = {
-  // GET /api/employees/:employee_id/2d_code 員工可以取得當日打卡二維碼
+  // GET /api/employees/:employee_id/2d_code 員工可以取得當日打卡二維碼(無加密)
   get2dCode: async (req, res, next) => {
     try {
       const id = req.params.employee_id
-      console.log(id)
+      console.log('get2dCode 偵測 id === ', id)
       const qrCode = await generateQR(`${process.env.PUNCH_URL}${id}`)
       res.status(200).json({
         status: 200,
@@ -22,6 +22,7 @@ module.exports = {
   // POST /api/employees/2d_code_auth 使用者向伺服器發送驗證用 IP
   checkIP: async (req, res, next) => {
     try {
+      console.log('checkIP已觸發')
       const { userIP } = req.body
       if (!userIP) {
         const err = new Error('系統無法取得你的IP，因此無法接受請求。')
@@ -37,6 +38,7 @@ module.exports = {
   // 接在 checkIP() 之後，回傳加密二維碼給前端。
   return2dCode: async (req, res, next) => {
     try {
+      console.log('return2dCode已觸發')
       if (!req.user.ip || !req.user.code || !req.user.today) {
         const err = new Error('你提供給系統的資料不齊全，因此請求不被核准。')
         err.status = 403

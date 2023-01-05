@@ -10,17 +10,20 @@ module.exports = (sequelize, DataTypes) => {
       })
     }
   }
-  Punch.init({
-    workingDay: DataTypes.DATEONLY,
-    state: DataTypes.STRING,
-    in: DataTypes.STRING,
-    out: DataTypes.STRING,
-    EmployeeId: DataTypes.INTEGER
-  }, {
-    sequelize,
-    modelName: 'Punch',
-    tableName: 'Punches',
-    underscored: true
-  })
+  Punch.init(
+    {
+      workingDay: DataTypes.DATEONLY,
+      state: DataTypes.STRING,
+      in: DataTypes.DATE,
+      out: DataTypes.DATE,
+      EmployeeId: DataTypes.INTEGER
+    },
+    {
+      sequelize,
+      modelName: 'Punch',
+      tableName: 'Punches',
+      underscored: true
+    }
+  )
   return Punch
 }

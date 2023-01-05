@@ -1,6 +1,6 @@
 // 本檔案將生成2022年1月上班日的打卡記錄
 'use strict'
-
+const dayjs = require('dayjs')
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up (queryInterface, Sequelize) {
@@ -43,11 +43,11 @@ module.exports = {
         Array.from(employees, (value) => ({
           employee_id: value.id,
           working_day: day,
-          in: `${day} 10:00:00`,
-          out: `${day} 18:01:00`,
+          in: dayjs(`${day} 10:00:00`).format(),
+          out: dayjs(`${day} 18:01:00`).format(),
           state: '出勤時數已達標準',
-          created_at: `${day} 10:00:00`,
-          updated_at: `${day} 18:01:00`
+          created_at: dayjs(`${day} 10:00:00`).format(),
+          updated_at: dayjs(`${day} 18:01:00`).format()
         })),
         {}
       )
@@ -62,10 +62,10 @@ module.exports = {
             employee_id: value.id,
             working_day: day,
             state: '完成上班打卡',
-            in: `${day} 11:11:11`,
-            out: `${day} 11:11:11`,
-            created_at: `${day} 11:11:11`,
-            updated_at: `${day} 11:11:11`
+            in: dayjs(`${day} 11:11:11`).format(),
+            out: dayjs(`${day} 11:11:11`).format(),
+            created_at: dayjs(`${day} 11:11:11`).format(),
+            updated_at: dayjs(`${day} 11:11:11`).format()
           })),
           {}
         )
@@ -78,10 +78,10 @@ module.exports = {
             employee_id: value.id,
             working_day: day,
             state: '警告：出勤時數未達標準',
-            in: `${day} 11:11:11`,
-            out: `${day} 12:12:12`,
-            created_at: `${day} 11:11:11`,
-            updated_at: `${day} 12:12:12`
+            in: dayjs(`${day} 11:11:11`).format(),
+            out: dayjs(`${day} 12:12:12`).format(),
+            created_at: dayjs(`${day} 11:11:11`).format(),
+            updated_at: dayjs(`${day} 12:12:12`).format()
           })),
           {}
         )
@@ -94,8 +94,10 @@ module.exports = {
           employee_id: value.id,
           working_day: day,
           state: '出勤時數已達標準',
-          created_at: `${day} 10:00:00`,
-          updated_at: `${day} 18:01:00`
+          in: dayjs(`${day} 10:00:00`).format(),
+          out: dayjs(`${day} 18:01:00`).format(),
+          created_at: dayjs(`${day} 10:00:00`).format(),
+          updated_at: dayjs(`${day} 18:01:00`).format()
         })),
         {}
       )

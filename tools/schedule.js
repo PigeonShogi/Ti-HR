@@ -32,7 +32,7 @@ const job = new CronJob(
   // 21點是伺服器時間，相當於台灣時間凌晨五點。
   // 目前是測試階段，多幾個時段方便觀測編碼是否正確。
   // "* * 6,12,21 * * *",
-  '0 24 18 * * *',
+  '0 30 0 * * *',
   async function () {
     const scheduleStartTime = new Date()
     console.info('提示：排程工作啟用中')
