@@ -94,10 +94,10 @@ module.exports = {
           employee_id: value.id,
           working_day: day,
           state: '出勤時數已達標準',
-          in: dayjs(`${day} 10:00:00`).format(),
-          out: dayjs(`${day} 18:01:00`).format(),
-          created_at: dayjs(`${day} 10:00:00`).format(),
-          updated_at: dayjs(`${day} 18:01:00`).format()
+          in: `${day} 10:00:00`,
+          out: `${day} 18:01:00`,
+          created_at: `${day} 10:00:00`,
+          updated_at: `${day} 18:01:00`
         })),
         {}
       )
