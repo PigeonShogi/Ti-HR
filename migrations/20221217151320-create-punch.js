@@ -16,10 +16,10 @@ module.exports = {
         type: Sequelize.STRING
       },
       in: {
-        type: Sequelize.STRING
+        type: Sequelize.DATE
       },
       out: {
-        type: Sequelize.STRING
+        type: Sequelize.DATE
       },
       created_at: {
         allowNull: false,

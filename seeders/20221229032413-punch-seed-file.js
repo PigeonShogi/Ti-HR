@@ -43,6 +43,8 @@ module.exports = {
         Array.from(employees, (value) => ({
           employee_id: value.id,
           working_day: day,
+          in: `${day} 10:00:00`,
+          out: `${day} 18:01:00`,
           state: '出勤時數已達標準',
           created_at: `${day} 10:00:00`,
           updated_at: `${day} 18:01:00`
@@ -60,6 +62,8 @@ module.exports = {
             employee_id: value.id,
             working_day: day,
             state: '完成上班打卡',
+            in: `${day} 11:11:11`,
+            out: `${day} 11:11:11`,
             created_at: `${day} 11:11:11`,
             updated_at: `${day} 11:11:11`
           })),
@@ -74,6 +78,8 @@ module.exports = {
             employee_id: value.id,
             working_day: day,
             state: '警告：出勤時數未達標準',
+            in: `${day} 11:11:11`,
+            out: `${day} 12:12:12`,
             created_at: `${day} 11:11:11`,
             updated_at: `${day} 12:12:12`
           })),
