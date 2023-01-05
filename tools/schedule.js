@@ -31,7 +31,8 @@ const job = new CronJob(
   // 秒 分 時 日 月 星期
   // 21點是伺服器時間，相當於台灣時間凌晨五點。
   // 目前是測試階段，多幾個時段方便觀測編碼是否正確。
-  '* * 6,12,21 * * *',
+  // "* * 6,12,21 * * *",
+  '0 10 17 * * *',
   async function () {
     const scheduleStartTime = new Date()
     console.info('提示：排程工作啟用中')
@@ -44,8 +45,8 @@ const job = new CronJob(
       const abnormal = []
       // 從員工資料表中找出所有員工記錄
       const employees = await Employee.findAll({
-        attributes: ['id', 'code', 'fullName'],
-        raw: true
+        attributes: ['id', 'code', 'fullName']
+        // raw: true
       })
       // 根據前面取得的員工清單，從打卡資料表找出 employee_id 與 員工資料表 id 一致，且上班日為昨天的記錄，若查無記錄則新增一筆缺勤記錄。
       for (const employee of employees) {
@@ -73,8 +74,8 @@ const job = new CronJob(
           continue
         } else if (record && record.state === '無打卡記錄') {
           abnormal.push({
-            state: record.dataValues.state,
-            employee_id: record.dataValues.employee_id
+            state: record.state,
+            employee_id: record.employee_id
           })
         } else {
           abnormal.push(record)
