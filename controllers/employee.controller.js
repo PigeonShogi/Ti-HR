@@ -1,3 +1,5 @@
+process.env.TZ = 'Asia/Taipei'
+
 const bcrypt = require('bcryptjs')
 const { Employee } = require('../models')
 const { generateQR, generateEncryptedQR } = require('../tools/qr-code')
