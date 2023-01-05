@@ -1,5 +1,3 @@
-process.env.TZ = 'Asia/Taipei'
-
 const { Employee, Punch } = require('../models')
 const bcrypt = require('bcryptjs')
 const dayjs = require('dayjs')
