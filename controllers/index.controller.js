@@ -7,15 +7,7 @@ module.exports = {
   getRoot: (req, res) => {
     res.status(200).json({
       status: '200 (OK)',
-      message: '伺服器運作中',
-      dataType: {
-        workingDay: 'DATEONLY',
-        in: 'DATE 但不使用',
-        out: 'DATE 但不使用',
-        TZ: 'app.js false',
-        seed: 'dayjs(2011-11-11 11:11:11`).format()',
-        tryToSolveTheProblem: "Incorrect DATE value: 'Invalid Da..."
-      }
+      message: '伺服器運作中'
     })
   },
   // POST /api/employees/signIn 員工可以登入系統
