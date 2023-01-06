@@ -1,8 +1,9 @@
 const { Employee, Punch } = require('../models')
 const bcrypt = require('bcryptjs')
 const dayjs = require('dayjs')
-const { now, today, timeSubtraction } = require('../tools/day')
+const { today, timeSubtraction } = require('../tools/day')
 const { ipArray } = require('../data/ip')
+const { roundToTwo } = require('../tools/math')
 
 module.exports = {
   // GET /api/punches 管理者可以檢視所有打卡記錄
@@ -23,7 +24,7 @@ module.exports = {
       }
       const { count, rows } = await Punch.findAndCountAll({
         attributes: {
-          exclude: ['createdAt', 'updatedAt']
+          exclude: ['in', 'out']
         },
         include: [
           {
@@ -40,6 +41,10 @@ module.exports = {
         nest: true,
         raw: true
       })
+      rows.forEach((row) => {
+        row.createdAt = dayjs(row.createdAt).format('hh:mm:ss')
+        row.updatedAt = dayjs(row.updatedAt).format('hh:mm:ss')
+      })
       res.status(200).json({
         status: 200,
         message: `成功調閱打卡記錄（第${page}頁）`,
@@ -54,7 +59,6 @@ module.exports = {
   postPunch: async (req, res, next) => {
     try {
       // 從資料表中找出當天的打卡記錄，若無則新建打卡記錄。
-      console.log('調用 postPunch', now)
       const [punch, created] = await Punch.findOrCreate({
         where: { EmployeeId: req.user.id, workingDay: today },
         defaults: {
@@ -73,8 +77,7 @@ module.exports = {
         // findOrCreate() 的結果若是找到打卡記錄（created === undefined）就處理下班打卡邏輯
       } else if (!created) {
         // 計算上班打卡至目前為止的時間，計算結果為 n 小時。
-        const workingHours = timeSubtraction(punch.createdAt, punch.updatedAt)
-        console.log('工時：', workingHours)
+        const workingHours = roundToTwo(timeSubtraction(punch.createdAt, punch.updatedAt))
         let state
         if (workingHours < 8) {
           state = '警告：出勤時數未達標準'
@@ -91,7 +94,7 @@ module.exports = {
         )
         res.status(200).json({
           status: 200,
-          message: '下班打卡成功',
+          message: `下班打卡成功。你今日的工時：${workingHours}小時`,
           data: workingHours
         })
       }
@@ -107,9 +110,6 @@ module.exports = {
       const verify = []
       // 比對使用者IP（ip）是否為公司儲存在 ipArray 內的許可值。
       for (const ip of ipArray) {
-        console.log(ip)
-        console.log(req.user.code)
-        console.log('today === ', today)
         const unencryptedValue = `@${ip}${req.user.code}${today}j*K4$29r#U!h`
         const compare = bcrypt.compareSync(unencryptedValue, hash)
         if (compare) {
