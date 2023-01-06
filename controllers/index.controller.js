@@ -8,9 +8,13 @@ module.exports = {
   getRoot: (req, res) => {
     res.status(200).json({
       status: '200 (OK)',
+<<<<<<< HEAD
       message: '伺服器運作中',
       cron: '* * 21 * * *',
       isHoliday: 'isHoliday !== null'
+=======
+      message: '伺服器運作中'
+>>>>>>> 8aba54b (feat: modify code to match database time)
     })
   },
   // POST /api/employees/signIn 員工可以登入系統

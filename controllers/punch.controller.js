@@ -109,6 +109,10 @@ module.exports = {
         nest: true,
         raw: true
       })
+      rows.forEach((row) => {
+        row.createdAt = dayjs(row.createdAt).format('hh:mm:ss')
+        row.updatedAt = dayjs(row.updatedAt).format('hh:mm:ss')
+      })
       res.status(200).json({
         status: 200,
         message: `成功調閱打卡記錄（第${page}頁）`,
