@@ -1,6 +1,7 @@
 const { Employee } = require('../models')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
+const mailer = require('../tools/mailer')
 
 module.exports = {
   // GET / 開發人員可以連上 localhost:8000
@@ -8,14 +9,7 @@ module.exports = {
     res.status(200).json({
       status: '200 (OK)',
       message: '伺服器運作中',
-      dataType: {
-        workingDay: 'DATEONLY',
-        in: 'DATE 但不使用',
-        out: 'DATE 但不使用',
-        TZ: 'app.js false',
-        seed: 'dayjs(2011-11-11 11:11:11`).format()',
-        tryToSolveTheProblem: "Incorrect DATE value: 'Invalid Da..."
-      }
+      cron: '0 0,10,20,30,40,50 9 * * *'
     })
   },
   // POST /api/employees/signIn 員工可以登入系統
@@ -40,8 +34,22 @@ module.exports = {
         err.status = 401
         throw err
       }
-      // 檢查密碼錯誤次數是否達五次以上
+      // 檢查密碼錯誤次數是否達五次以上。employeeData.typoCount等於五表示剛上鎖，系統要寄信通知管理者，然後將employeeData.typoCount改為六。如果employeeData.typoCount等於六就只拒絕登入，不再次通知管理者。
       if (employeeData.typoCount >= 5) {
+        if (employeeData.typoCount === 5) {
+          await Employee.update(
+            { typoCount: 6 },
+            { where: { code: employeeCode } }
+          )
+          mailer.transporter
+            .sendMail(mailer.accountLocked)
+            .then((info) => {
+              console.info({ info })
+            })
+            .catch((err) => {
+              console.error(err)
+            })
+        }
         const err = new Error(
           '密碼輸入錯誤累計5次以上，系統拒絕你的登入請求。請向人資同仁尋求協助。'
         )

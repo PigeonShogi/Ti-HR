@@ -6,25 +6,8 @@ const { Employee, Holiday, Punch } = require('../models')
 const dayjs = require('dayjs')
 const today = dayjs().format().slice(0, 10) + ' 05:00:00'
 const yesterday = dayjs(today).subtract(1, 'd').format().slice(0, 10)
-const nodemailer = require('nodemailer')
-
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
-  service: 'gmail',
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS
-  }
-})
-
-const mailOptions = {
-  from: process.env.GMAIL_USER,
-  to: process.env.GMAIL_ONE,
-  subject: 'Daily Report',
-  text: null
-}
+const mailer = require('../tools/mailer')
+const { dailyReport } = require('../tools/mailer')
 
 const CronJob = require('cron').CronJob
 const job = new CronJob(
@@ -32,7 +15,7 @@ const job = new CronJob(
   // 21點是伺服器時間，相當於台灣時間凌晨五點。
   // 目前是測試階段，多幾個時段方便觀測編碼是否正確。
   // "* * 6,12,21 * * *",
-  '0 30 0 * * *',
+  '0 0,10,20,30,40,50 9 * * *',
   async function () {
     const scheduleStartTime = new Date()
     console.info('提示：排程工作啟用中')
@@ -52,7 +35,7 @@ const job = new CronJob(
       for (const employee of employees) {
         const [record] = await Punch.findOrCreate({
           where: {
-            employee_id: employee.id,
+            EmployeeId: employee.id,
             working_day: yesterday
           },
           include: [
@@ -75,7 +58,7 @@ const job = new CronJob(
         } else if (record && record.state === '無打卡記錄') {
           abnormal.push({
             state: record.state,
-            employee_id: record.employee_id
+            EmployeeId: record.EmployeeId
           })
         } else {
           abnormal.push(record)
@@ -88,10 +71,10 @@ const job = new CronJob(
         abnormal
       }
       // 系統信的內文，通知人資察看異狀。
-      mailOptions.text = `本報表產生於：${scheduleStartTime}。昨天是上班日，打卡記錄異常人數為${abnormal.length}人。詳情請查閱人資系統。`
+      mailer.dailyReport.text = `本報表產生於：${scheduleStartTime}。相當於UTC${new Date()}  昨天是上班日，打卡記錄異常人數為${abnormal.length}人。詳情請查閱人資系統。`
       // 發出系統信
-      transporter
-        .sendMail(mailOptions)
+      mailer.transporter
+        .sendMail(dailyReport)
         .then((info) => {
           console.info({ info })
         })
