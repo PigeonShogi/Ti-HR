@@ -1,4 +1,5 @@
 const { Employee, Punch } = require('../models')
+const { Op } = require('sequelize')
 const bcrypt = require('bcryptjs')
 const dayjs = require('dayjs')
 const { today, timeSubtraction } = require('../tools/day')
@@ -6,10 +7,18 @@ const { ipArray } = require('../data/ip')
 const { roundToTwo } = require('../tools/math')
 
 module.exports = {
-  // GET /api/punches 管理者可以檢視所有打卡記錄
+  // GET /api/punches 管理者可依條件檢視打卡記錄
   getPunches: async (req, res, next) => {
     try {
+      const { option } = req.query
       let page = Number(req.query.page)
+      let criterion
+      // 之後會使用 SQL 的 NOT 關鍵詞查詢資料。如果前端的檢索選項是 absence，就將 state 非「出勤時數已達標準」的記錄回傳前端。如果前端的檢索選項是 all，就將 state 非空字串的記錄回傳前端。
+      if (option === 'absence') {
+        criterion = '出勤時數已達標準'
+      } else if (option === 'all') {
+        criterion = ''
+      }
       // 如果 req.query 是不恰當的值，將之轉換為 1，以免預期外的錯誤發生。
       if (!page || typeof page !== 'number') {
         page = 1
@@ -23,6 +32,9 @@ module.exports = {
         throw err
       }
       const { count, rows } = await Punch.findAndCountAll({
+        where: {
+          [Op.not]: [{ state: [criterion] }]
+        },
         attributes: {
           exclude: ['in', 'out']
         },
@@ -77,7 +89,9 @@ module.exports = {
         // findOrCreate() 的結果若是找到打卡記錄（created === undefined）就處理下班打卡邏輯
       } else if (!created) {
         // 計算上班打卡至目前為止的時間，計算結果為 n 小時。
-        const workingHours = roundToTwo(timeSubtraction(punch.createdAt, punch.updatedAt))
+        const workingHours = roundToTwo(
+          timeSubtraction(punch.createdAt, punch.updatedAt)
+        )
         let state
         if (workingHours < 8) {
           state = '警告：出勤時數未達標準'
