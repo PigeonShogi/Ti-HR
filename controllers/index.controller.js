@@ -9,7 +9,8 @@ module.exports = {
     res.status(200).json({
       status: '200 (OK)',
       message: '伺服器運作中',
-      cron: '0 0,10,20,30,40,50 9 * * *'
+      cron: '* * 21 * * *',
+      isHoliday: 'isHoliday !== null'
     })
   },
   // POST /api/employees/signIn 員工可以登入系統

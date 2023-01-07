@@ -15,7 +15,7 @@ const job = new CronJob(
   // 21點是伺服器時間，相當於台灣時間凌晨五點。
   // 目前是測試階段，多幾個時段方便觀測編碼是否正確。
   // "* * 6,12,21 * * *",
-  '0 0,10,20,30,40,50 9 * * *',
+  '* * 21 * * *',
   async function () {
     const scheduleStartTime = new Date()
     console.info('提示：排程工作啟用中')
@@ -23,7 +23,7 @@ const job = new CronJob(
     const isHoliday = await Holiday.findOne({
       where: { date: yesterday }
     })
-    if (!isHoliday) {
+    if (!isHoliday || isHoliday !== null) {
       // 之後會將出勤狀況異常的記錄寫入陣列 abnormal 之中
       const abnormal = []
       // 從員工資料表中找出所有員工記錄
@@ -71,7 +71,9 @@ const job = new CronJob(
         abnormal
       }
       // 系統信的內文，通知人資察看異狀。
-      mailer.dailyReport.text = `本報表產生於：${scheduleStartTime}。相當於UTC${new Date()}  昨天是上班日，打卡記錄異常人數為${abnormal.length}人。詳情請查閱人資系統。`
+      mailer.dailyReport.text = `本報表產生於：${scheduleStartTime}。相當於UTC${new Date()}  昨天是上班日，打卡記錄異常人數為${
+        abnormal.length
+      }人。詳情請查閱人資系統。`
       // 發出系統信
       mailer.transporter
         .sendMail(dailyReport)

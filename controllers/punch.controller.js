@@ -10,6 +10,12 @@ module.exports = {
   // GET /api/punches 管理者可依條件檢視打卡記錄
   getPunches: async (req, res, next) => {
     try {
+      // 一般使用者無法提出此請求
+      if (req.user.identity !== 'admin') {
+        const err = new Error('你的權限無法提出此請求')
+        err.status = 403
+        throw err
+      }
       const { option } = req.query
       let page = Number(req.query.page)
       let criterion
@@ -26,11 +32,6 @@ module.exports = {
       // 後端同一時間只回傳十筆資料給前端渲染
       const limit = 10
       const offset = (page - 1) * limit
-      if (req.user.identity !== 'admin') {
-        const err = new Error('你的權限無法提出此請求')
-        err.status = 403
-        throw err
-      }
       const { count, rows } = await Punch.findAndCountAll({
         where: {
           [Op.not]: [{ state: [criterion] }]
@@ -53,10 +54,6 @@ module.exports = {
         nest: true,
         raw: true
       })
-      // rows.forEach((row) => {
-      //   row.createdAt = dayjs(row.createdAt).format('hh:mm:ss')
-      //   row.updatedAt = dayjs(row.updatedAt).format('hh:mm:ss')
-      // })
       res.status(200).json({
         status: 200,
         message: `成功調閱打卡記錄（第${page}頁）`,
