@@ -10,7 +10,8 @@ module.exports = {
       status: '200 (OK)',
       message: '伺服器運作中',
       cron: '* * 21 * * *',
-      isHoliday: 'isHoliday !== null'
+      isHoliday: 'isHoliday !== null',
+      jobs: '每雙數小時'
     })
   },
   // POST /api/employees/signIn 員工可以登入系統

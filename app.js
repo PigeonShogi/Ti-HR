@@ -21,6 +21,20 @@ const corsOptions = {
 const PORT = process.env.PORT || 8000
 // 引用排程
 const job = require('./tools/schedule')
+const {
+  job0,
+  job2,
+  job4,
+  job6,
+  job8,
+  job10,
+  job12,
+  job14,
+  job16,
+  job18,
+  job20,
+  job22
+} = require('./tools/schedule2')
 
 app.use(cors(corsOptions))
 app.use(express.urlencoded({ extended: true }))
