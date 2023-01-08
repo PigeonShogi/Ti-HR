@@ -1,45 +1,27 @@
 /*
-這是一個排程檔案。命令伺服器每天凌晨五點檢查昨天是否為上班日，是就從資料庫存取打卡記錄，否則結束當日排程工作。
+這是一個排程檔案。命令伺服器每天二十一點（相當於台灣時間凌晨五點）檢查當天是否為上班日，是就從資料庫存取打卡記錄，否則結束當日排程工作。注意：伺服器的日期在台灣時間凌晨五點時，比台灣小一日。
 */
 const { Employee, Holiday, Punch } = require('../models')
 // 引用套件計算時間、發系統通知信
 const dayjs = require('dayjs')
-const today = dayjs().format().slice(0, 10) + ' 05:00:00'
-const yesterday = dayjs(today).subtract(1, 'd').format().slice(0, 10)
-const nodemailer = require('nodemailer')
-
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
-  service: 'gmail',
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS
-  }
-})
-
-const mailOptions = {
-  from: process.env.GMAIL_USER,
-  to: process.env.GMAIL_ONE,
-  subject: 'Daily Report',
-  text: null
-}
+const { today } = require('./day')
+const mailer = require('./mailer')
 
 const CronJob = require('cron').CronJob
 const job = new CronJob(
   // 秒 分 時 日 月 星期
   // 21點是伺服器時間，相當於台灣時間凌晨五點。
-  // 目前是測試階段，多幾個時段方便觀測編碼是否正確。
-  // "* * 6,12,21 * * *",
-  '0 30 0 * * *',
+  '* * 21 * * *',
+  // '10,20,30,40,50 * 3 * * *',
   async function () {
     const scheduleStartTime = new Date()
     console.info('提示：排程工作啟用中')
-    // 資料表 Holidays 內的預設資料為 2022、2023兩年的所有假日。以下編碼將以昨日日期為檢索條件，找尋資料表內是否有日期與其一致的記錄，是則表示昨日為假日，結束本日排程工作；若找尋資料表結果查無記錄，表示昨日為上班日，繼續本日排程工作。
+    // 資料表 Holidays 內的預設資料為 2022、2023兩年的所有假日。以下編碼將以伺服器執行排程當下日期為檢索條件，找尋資料表內是否有日期與其一致的記錄，是則表示台灣時間昨日為假日，結束本日排程工作；若找尋資料表結果查無記錄，表示台灣時間昨日為上班日，繼續本日排程工作。
     const isHoliday = await Holiday.findOne({
-      where: { date: yesterday }
+      where: { date: today }
     })
+    console.log('today === ', today)
+    console.log('isHoliday === ', isHoliday)
     if (!isHoliday) {
       // 之後會將出勤狀況異常的記錄寫入陣列 abnormal 之中
       const abnormal = []
@@ -52,8 +34,8 @@ const job = new CronJob(
       for (const employee of employees) {
         const [record] = await Punch.findOrCreate({
           where: {
-            employee_id: employee.id,
-            working_day: yesterday
+            EmployeeId: employee.id,
+            working_day: today
           },
           include: [
             {
@@ -62,9 +44,12 @@ const job = new CronJob(
             }
           ],
           defaults: {
-            workingDay: yesterday,
+            workingDay: today,
+            workingHours: 0,
             state: '無打卡記錄',
-            EmployeeId: employee.id
+            EmployeeId: employee.id,
+            createdAt: new Date(),
+            updatedAt: new Date()
           },
           attributes: ['working_day', 'state'],
           raw: true,
@@ -75,7 +60,7 @@ const job = new CronJob(
         } else if (record && record.state === '無打卡記錄') {
           abnormal.push({
             state: record.state,
-            employee_id: record.employee_id
+            EmployeeId: record.EmployeeId
           })
         } else {
           abnormal.push(record)
@@ -88,10 +73,10 @@ const job = new CronJob(
         abnormal
       }
       // 系統信的內文，通知人資察看異狀。
-      mailOptions.text = `本報表產生於：${scheduleStartTime}。昨天是上班日，打卡記錄異常人數為${abnormal.length}人。詳情請查閱人資系統。`
+      mailer.dailyReport.text = `昨天是上班日，打卡記錄異常人數為${abnormal.length}人。詳情請查閱人資系統。`
       // 發出系統信
-      transporter
-        .sendMail(mailOptions)
+      mailer.transporter
+        .sendMail(mailer.dailyReport)
         .then((info) => {
           console.info({ info })
         })
@@ -105,7 +90,6 @@ const job = new CronJob(
   false,
   'Asia/Taipei'
 )
-job.start()
 
 // 將排程輸出，讓 app.js 使用。
 module.exports = job

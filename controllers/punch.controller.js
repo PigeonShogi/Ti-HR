@@ -1,4 +1,5 @@
 const { Employee, Punch } = require('../models')
+const { Op } = require('sequelize')
 const bcrypt = require('bcryptjs')
 const dayjs = require('dayjs')
 const { today, timeSubtraction } = require('../tools/day')
@@ -6,10 +7,25 @@ const { ipArray } = require('../data/ip')
 const { roundToTwo } = require('../tools/math')
 
 module.exports = {
-  // GET /api/punches 管理者可以檢視所有打卡記錄
-  getPunches: async (req, res, next) => {
+  // GET /api/punches/:employee_code/my_punches 員工可以檢視自己的打卡記錄
+  getMyPunches: async (req, res, next) => {
     try {
+      const { employeeCode } = req.params
+      // 只能查閱自己的打卡記錄
+      if (req.user.code !== employeeCode) {
+        const err = new Error('你只能查閱自己的打卡記錄')
+        err.status = 403
+        throw err
+      }
+      const { option } = req.query
       let page = Number(req.query.page)
+      let criterion
+      // 之後會使用 SQL 的 NOT 關鍵詞查詢資料。如果前端的檢索選項是 absence，就將 state 非「出勤時數已達標準」的記錄回傳前端。如果前端的檢索選項是 all，就將 state 非空字串的記錄回傳前端。
+      if (option === 'absence') {
+        criterion = '出勤時數已達標準'
+      } else if (option === 'all') {
+        criterion = ''
+      }
       // 如果 req.query 是不恰當的值，將之轉換為 1，以免預期外的錯誤發生。
       if (!page || typeof page !== 'number') {
         page = 1
@@ -17,15 +33,68 @@ module.exports = {
       // 後端同一時間只回傳十筆資料給前端渲染
       const limit = 10
       const offset = (page - 1) * limit
+      const { count, rows } = await Punch.findAndCountAll({
+        where: {
+          [Op.not]: [{ state: [criterion] }]
+        },
+        // attributes: {
+        //   exclude: ['in', 'out']
+        // },
+        include: [
+          {
+            model: Employee,
+            where: { code: employeeCode },
+            attributes: ['code', 'full_name']
+          }
+        ],
+        order: [['working_day', 'DESC']],
+        limit,
+        offset,
+        nest: true,
+        raw: true
+      })
+      res.status(200).json({
+        status: 200,
+        message: `成功調閱打卡記錄（第${page}頁）`,
+        count,
+        data: rows
+      })
+    } catch (err) {
+      next(err)
+    }
+  },
+  // GET /api/punches 管理者可依條件檢視打卡記錄
+  getPunches: async (req, res, next) => {
+    try {
+      // 一般使用者無法提出此請求
       if (req.user.identity !== 'admin') {
         const err = new Error('你的權限無法提出此請求')
         err.status = 403
         throw err
       }
+      const { option } = req.query
+      let page = Number(req.query.page)
+      let criterion
+      // 之後會使用 SQL 的 NOT 關鍵詞查詢資料。如果前端的檢索選項是 absence，就將 state 非「出勤時數已達標準」的記錄回傳前端。如果前端的檢索選項是 all，就將 state 非空字串的記錄回傳前端。
+      if (option === 'absence') {
+        criterion = '出勤時數已達標準'
+      } else if (option === 'all') {
+        criterion = ''
+      }
+      // 如果 req.query 是不恰當的值，將之轉換為 1，以免預期外的錯誤發生。
+      if (!page || typeof page !== 'number') {
+        page = 1
+      }
+      // 後端同一時間只回傳十筆資料給前端渲染
+      const limit = 10
+      const offset = (page - 1) * limit
       const { count, rows } = await Punch.findAndCountAll({
-        attributes: {
-          exclude: ['in', 'out']
+        where: {
+          [Op.not]: [{ state: [criterion] }]
         },
+        // attributes: {
+        //   exclude: ['in', 'out']
+        // },
         include: [
           {
             model: Employee,
@@ -41,10 +110,10 @@ module.exports = {
         nest: true,
         raw: true
       })
-      // rows.forEach((row) => {
-      //   row.createdAt = dayjs(row.createdAt).format('hh:mm:ss')
-      //   row.updatedAt = dayjs(row.updatedAt).format('hh:mm:ss')
-      // })
+      rows.forEach((row) => {
+        row.createdAt = dayjs(row.createdAt).format('YYYY-MM-DD hh:mm:ss')
+        row.updatedAt = dayjs(row.updatedAt).format('YYYY-MM-DD hh:mm:ss')
+      })
       res.status(200).json({
         status: 200,
         message: `成功調閱打卡記錄（第${page}頁）`,
@@ -63,6 +132,7 @@ module.exports = {
         where: { EmployeeId: req.user.id, workingDay: today },
         defaults: {
           workingDay: today,
+          workingHours: 0,
           state: '完成上班打卡',
           EmployeeId: req.user.id
         },
@@ -77,7 +147,9 @@ module.exports = {
         // findOrCreate() 的結果若是找到打卡記錄（created === undefined）就處理下班打卡邏輯
       } else if (!created) {
         // 計算上班打卡至目前為止的時間，計算結果為 n 小時。
-        const workingHours = roundToTwo(timeSubtraction(punch.createdAt, punch.updatedAt))
+        const workingHours = roundToTwo(
+          timeSubtraction(punch.createdAt, punch.updatedAt)
+        )
         let state
         if (workingHours < 8) {
           state = '警告：出勤時數未達標準'
