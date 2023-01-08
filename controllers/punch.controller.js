@@ -1,6 +1,7 @@
 const { Employee, Punch } = require('../models')
 const { Op } = require('sequelize')
 const bcrypt = require('bcryptjs')
+const dayjs = require('dayjs')
 const { today, timeSubtraction } = require('../tools/day')
 const { ipArray } = require('../data/ip')
 const { roundToTwo } = require('../tools/math')
@@ -110,8 +111,8 @@ module.exports = {
         raw: true
       })
       rows.forEach((row) => {
-        row.createdAt = dayjs(row.createdAt).format('hh:mm:ss')
-        row.updatedAt = dayjs(row.updatedAt).format('hh:mm:ss')
+        row.createdAt = dayjs(row.createdAt).format('YYYY-MM-DD hh:mm:ss')
+        row.updatedAt = dayjs(row.updatedAt).format('YYYY-MM-DD hh:mm:ss')
       })
       res.status(200).json({
         status: 200,
