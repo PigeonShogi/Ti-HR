@@ -1,12 +1,67 @@
 const { Employee, Punch } = require('../models')
 const { Op } = require('sequelize')
 const bcrypt = require('bcryptjs')
-const dayjs = require('dayjs')
 const { today, timeSubtraction } = require('../tools/day')
 const { ipArray } = require('../data/ip')
 const { roundToTwo } = require('../tools/math')
 
 module.exports = {
+  // GET /api/punches/:employee_code/my_punches 員工可以檢視自己的打卡記錄
+  getMyPunches: async (req, res, next) => {
+    try {
+      const { employeeCode } = req.params
+      // 只能查閱自己的打卡記錄
+      if (req.user.code !== employeeCode) {
+        const err = new Error('你只能查閱自己的打卡記錄')
+        err.status = 403
+        throw err
+      }
+      const { option } = req.query
+      let page = Number(req.query.page)
+      let criterion
+      // 之後會使用 SQL 的 NOT 關鍵詞查詢資料。如果前端的檢索選項是 absence，就將 state 非「出勤時數已達標準」的記錄回傳前端。如果前端的檢索選項是 all，就將 state 非空字串的記錄回傳前端。
+      if (option === 'absence') {
+        criterion = '出勤時數已達標準'
+      } else if (option === 'all') {
+        criterion = ''
+      }
+      // 如果 req.query 是不恰當的值，將之轉換為 1，以免預期外的錯誤發生。
+      if (!page || typeof page !== 'number') {
+        page = 1
+      }
+      // 後端同一時間只回傳十筆資料給前端渲染
+      const limit = 10
+      const offset = (page - 1) * limit
+      const { count, rows } = await Punch.findAndCountAll({
+        where: {
+          [Op.not]: [{ state: [criterion] }]
+        },
+        attributes: {
+          exclude: ['in', 'out']
+        },
+        include: [
+          {
+            model: Employee,
+            where: { code: employeeCode },
+            attributes: ['code', 'full_name']
+          }
+        ],
+        order: [['working_day', 'DESC']],
+        limit,
+        offset,
+        nest: true,
+        raw: true
+      })
+      res.status(200).json({
+        status: 200,
+        message: `成功調閱打卡記錄（第${page}頁）`,
+        count,
+        data: rows
+      })
+    } catch (err) {
+      next(err)
+    }
+  },
   // GET /api/punches 管理者可依條件檢視打卡記錄
   getPunches: async (req, res, next) => {
     try {
