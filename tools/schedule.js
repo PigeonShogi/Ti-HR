@@ -6,8 +6,7 @@ const { Employee, Holiday, Punch } = require('../models')
 const dayjs = require('dayjs')
 const today = dayjs().format().slice(0, 10) + ' 05:00:00'
 const yesterday = dayjs(today).subtract(1, 'd').format().slice(0, 10)
-const mailer = require('../tools/mailer')
-const { dailyReport } = require('../tools/mailer')
+const mailer = require('./mailer')
 
 const CronJob = require('cron').CronJob
 const job = new CronJob(
@@ -47,7 +46,9 @@ const job = new CronJob(
           defaults: {
             workingDay: yesterday,
             state: '無打卡記錄',
-            EmployeeId: employee.id
+            EmployeeId: employee.id,
+            createdAt: dayjs().format(),
+            updatedAt: dayjs().format()
           },
           attributes: ['working_day', 'state'],
           raw: true,
@@ -76,7 +77,7 @@ const job = new CronJob(
       }人。詳情請查閱人資系統。`
       // 發出系統信
       mailer.transporter
-        .sendMail(dailyReport)
+        .sendMail(mailer.dailyReport)
         .then((info) => {
           console.info({ info })
         })
@@ -90,7 +91,6 @@ const job = new CronJob(
   false,
   'Asia/Taipei'
 )
-job.start()
 
 // 將排程輸出，讓 app.js 使用。
 module.exports = job
