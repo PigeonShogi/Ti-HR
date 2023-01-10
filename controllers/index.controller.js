@@ -8,8 +8,7 @@ module.exports = {
   getRoot: (req, res) => {
     res.status(200).json({
       status: '200 (OK)',
-      message: '伺服器運作中',
-      format: '後端不需將時間格式化'
+      message: '伺服器運作中'
     })
   },
   // POST /api/employees/signIn 員工可以登入系統

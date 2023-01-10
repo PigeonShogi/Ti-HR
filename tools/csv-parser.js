@@ -45,7 +45,7 @@ function csvParser (filePath) {
       console.error(err)
     })
     .on('end', () => {
-      console.log('資料解析完畢')
-      console.log('results: ', results)
+      console.info('資料解析完畢')
+      console.info('results: ', results)
     })
 }

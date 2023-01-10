@@ -29,5 +29,5 @@ app.use(router)
 job.start()
 
 app.listen(PORT, () => {
-  console.log(`Listening on port ${PORT}...`)
+  console.info(`Listening on port ${PORT}...`)
 })

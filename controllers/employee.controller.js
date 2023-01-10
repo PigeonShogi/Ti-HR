@@ -1,24 +1,10 @@
 const bcrypt = require('bcryptjs')
 const { Employee } = require('../models')
-const { generateQR, generateEncryptedQR } = require('../tools/qr-code')
+const { generateEncryptedQR } = require('../tools/qr-code')
 const { today } = require('../tools/day')
 
 module.exports = {
-  // GET /api/employees/:employee_id/2d_code 員工可以取得當日打卡二維碼(無加密)
-  get2dCode: async (req, res, next) => {
-    try {
-      const id = req.params.employee_id
-      const qrCode = await generateQR(`${process.env.PUNCH_URL}${id}`)
-      res.status(200).json({
-        status: 200,
-        message: '成功取得打卡二維碼',
-        punchCode: qrCode
-      })
-    } catch (err) {
-      next(err)
-    }
-  },
-  // POST /api/employees/2d_code_auth 使用者向伺服器發送驗證用 IP
+  // POST /api/employees/2d_code_auth 使用者向伺服器發送驗證用 IP，藉以取得加密過的打卡二維碼。
   checkIP: async (req, res, next) => {
     try {
       const { userIP } = req.body
@@ -68,7 +54,6 @@ module.exports = {
         throw err
       }
       // 後端同一時間只回傳十筆資料給前端渲染
-      const { option } = req.query
       const page = Number(req.query.page)
       const limit = 10
       const offset = (page - 1) * limit
@@ -155,7 +140,7 @@ module.exports = {
       next(err)
     }
   },
-  // PUT /api/employees/typo_count
+  // PUT /api/employees/typo_count 管理者可以將使用者的密碼錯誤次數歸零
   putTypoCount: async (req, res, next) => {
     try {
       // 如果使用者身份非 admin，拒絕請求

@@ -7,7 +7,6 @@ const authenticated = require('../middleware/auth')
 const { apiErrorHandler } = require('../middleware/error-handler')
 
 router.post('/api/signIn', signIn)
-router.get('/api/signOut')
 router.use('/api/employees', authenticated, employee)
 router.use('/api/punches', authenticated, punch)
 router.get('/', getRoot)

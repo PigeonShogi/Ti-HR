@@ -1,6 +1,5 @@
 // 本檔案將生成2022年1月上班日的打卡記錄
 'use strict'
-const dayjs = require('dayjs')
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up (queryInterface, Sequelize) {

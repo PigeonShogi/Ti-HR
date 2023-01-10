@@ -3,16 +3,14 @@
 */
 const { Employee, Holiday, Punch } = require('../models')
 // 引用套件計算時間、發系統通知信
-const dayjs = require('dayjs')
 const { today } = require('./day')
 const mailer = require('./mailer')
 
 const CronJob = require('cron').CronJob
 const job = new CronJob(
   // 秒 分 時 日 月 星期
-  // 21點是伺服器時間，相當於台灣時間凌晨五點。
   '* * 21 * * *',
-  // '10,20,30,40,50 * 3 * * *',
+  // 21點是伺服器時間，相當於台灣時間凌晨五點。
   async function () {
     const scheduleStartTime = new Date()
     console.info('提示：排程工作啟用中')
@@ -20,15 +18,12 @@ const job = new CronJob(
     const isHoliday = await Holiday.findOne({
       where: { date: today }
     })
-    console.log('today === ', today)
-    console.log('isHoliday === ', isHoliday)
     if (!isHoliday) {
       // 之後會將出勤狀況異常的記錄寫入陣列 abnormal 之中
       const abnormal = []
       // 從員工資料表中找出所有員工記錄
       const employees = await Employee.findAll({
         attributes: ['id', 'code', 'fullName']
-        // raw: true
       })
       // 根據前面取得的員工清單，從打卡資料表找出 employee_id 與 員工資料表 id 一致，且上班日為昨天的記錄，若查無記錄則新增一筆缺勤記錄。
       for (const employee of employees) {
