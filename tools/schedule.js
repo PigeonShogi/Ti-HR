@@ -1,5 +1,5 @@
 /*
-這是一個排程檔案。命令伺服器每天二十一點（相當於台灣時間凌晨五點）檢查當天是否為上班日，是就從資料庫存取打卡記錄，否則結束當日排程工作。注意：伺服器的日期在台灣時間凌晨五點時，比台灣小一日。
+這是一個排程檔案。命令伺服器每天凌晨五點檢查昨天是否為上班日，是就從資料庫存取打卡記錄，否則結束當日排程工作。
 */
 const { Employee, Holiday, Punch } = require('../models')
 // 引用套件計算時間、發系統通知信
@@ -9,11 +9,9 @@ const mailer = require('./mailer')
 const CronJob = require('cron').CronJob
 const job = new CronJob(
   // 秒 分 時 日 月 星期
-  '* * 21 * * *',
-  // 21點是伺服器時間，相當於台灣時間凌晨五點。
+  '0 0 5 * * *',
   async function () {
     const scheduleStartTime = new Date()
-    console.info('提示：排程工作啟用中')
     // 資料表 Holidays 內的預設資料為 2022、2023兩年的所有假日。以下編碼將以伺服器執行排程當下日期為檢索條件，找尋資料表內是否有日期與其一致的記錄，是則表示台灣時間昨日為假日，結束本日排程工作；若找尋資料表結果查無記錄，表示台灣時間昨日為上班日，繼續本日排程工作。
     const isHoliday = await Holiday.findOne({
       where: { date: today }
