@@ -43,6 +43,7 @@
     "passport-jwt": "^4.0.0",
     "qrcode": "^1.5.1",
     "sequelize": "^6.27.0",
-    "sequelize-cli": "^6.5.2"
+    "sequelize-cli": "^6.5.2",
+    "validator": "^13.7.0"
   }
 }
