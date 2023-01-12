@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs')
 const { Employee } = require('../models')
-const { generateEncryptedQR } = require('../tools/qr-code')
+const { generateEncryptedQR, generateDemoQR } = require('../tools/qr-code')
 const { today } = require('../tools/day')
 
 module.exports = {
@@ -35,10 +35,13 @@ module.exports = {
         req.user.today,
         process.env.PUNCH_URL
       )
+      // 生成 Demo 專用二維碼（無加密、不檢查IP）
+      const qrCodeDemo = await generateDemoQR(process.env.PUNCH_URL)
       res.status(200).json({
         status: 200,
         message: '成功取得打卡二維碼',
-        punchCode: qrCode
+        punchCode: qrCode,
+        punchCodeDemo: qrCodeDemo
       })
     } catch (err) {
       next(err)

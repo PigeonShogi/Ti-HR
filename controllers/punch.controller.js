@@ -191,6 +191,15 @@ module.exports = {
       next(err)
     }
   },
+  // GET /api/punches/demo 掃描二維碼打卡（Demo 專用，無加密、不審核IP）
+  twoDCodePunchDemo: (req, res, next) => {
+    try {
+      // 調用 postPunch（掃描二維碼無法發出POST請求，需轉交下個中介軟體處理）
+      next()
+    } catch (err) {
+      next(err)
+    }
+  },
   // PUT /api/punches/:punch_id/state 管理者可以將缺勤狀態改為到勤
   putState: async (req, res, next) => {
     try {

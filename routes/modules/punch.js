@@ -6,9 +6,11 @@ const {
   getPunches,
   postPunch,
   putState,
-  twoDCodePunch
+  twoDCodePunch,
+  twoDCodePunchDemo
 } = require('../../controllers/punch.controller')
 
+router.get('/demo', twoDCodePunchDemo, postPunch)
 router.get('/:employeeCode/my_punches', getMyPunches)
 router.get('/:encrypted_value/', twoDCodePunch, postPunch)
 router.put('/:punch_id/state', putState)

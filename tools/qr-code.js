@@ -22,6 +22,17 @@ const generateEncryptedQR = async (ip, employeeCode, today, baseUrl) => {
   }
 }
 
+// 產出 Demo 專用二維碼，不審核 IP，直接放行打卡。
+const generateDemoQR = async (baseUrl) => {
+  try {
+    const url = `${baseUrl}/api/punches/demo`
+    return await QRCode.toDataURL(url)
+  } catch (err) {
+    console.error(err)
+  }
+}
+
 module.exports = {
-  generateEncryptedQR
+  generateEncryptedQR,
+  generateDemoQR
 }
