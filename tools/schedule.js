@@ -3,7 +3,7 @@
 */
 const { Employee, Holiday, Punch } = require('../models')
 // 引用套件計算時間、發系統通知信
-const { today } = require('./day')
+const { today, todayTaiwan } = require('./day')
 const mailer = require('./mailer')
 
 const CronJob = require('cron').CronJob
@@ -14,7 +14,7 @@ const job = new CronJob(
     const scheduleStartTime = new Date()
     // 資料表 Holidays 內的預設資料為 2022、2023兩年的所有假日。以下編碼將以伺服器執行排程當下日期為檢索條件，找尋資料表內是否有日期與其一致的記錄，是則表示台灣時間昨日為假日，結束本日排程工作；若找尋資料表結果查無記錄，表示台灣時間昨日為上班日，繼續本日排程工作。
     const isHoliday = await Holiday.findOne({
-      where: { date: today }
+      where: { date: todayTaiwan }
     })
     if (!isHoliday) {
       // 之後會將出勤狀況異常的記錄寫入陣列 abnormal 之中
@@ -28,6 +28,7 @@ const job = new CronJob(
         const [record] = await Punch.findOrCreate({
           where: {
             EmployeeId: employee.id,
+            // today 表示伺服器時間（UTC+00:00），在排程執行時比台灣小一天。
             working_day: today
           },
           include: [
