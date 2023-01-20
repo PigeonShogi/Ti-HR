@@ -3,7 +3,7 @@
 */
 const { Employee, Holiday, Punch } = require('../models')
 // 引用套件計算時間、發系統通知信
-const { today, todayTaiwan } = require('./day')
+const { today, todayTaiwan, yesterdayStartOf } = require('./day')
 const mailer = require('./mailer')
 
 const CronJob = require('cron').CronJob
@@ -38,7 +38,7 @@ const job = new CronJob(
             }
           ],
           defaults: {
-            workingDay: today,
+            workingDay: yesterdayStartOf,
             workingHours: 0,
             state: '無打卡記錄',
             EmployeeId: employee.id,
