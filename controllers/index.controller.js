@@ -1,4 +1,5 @@
 const { Employee } = require('../models')
+const dayjs = require('dayjs')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const mailer = require('../tools/mailer')
@@ -8,7 +9,8 @@ module.exports = {
   getRoot: (req, res) => {
     res.status(200).json({
       status: '200 (OK)',
-      message: '伺服器運作中'
+      message: '伺服器運作中',
+      test: '目前無測試新功能'
     })
   },
   // POST /api/employees/signIn 員工可以登入系統
@@ -82,7 +84,9 @@ module.exports = {
         message: '登入成功',
         data: {
           token,
-          employee: employeeData
+          employee: employeeData,
+          // 產生當下時間加 23 小時的 Date 物件。前端將監聽使用者使用系統時的時間，若該時間超過 authExp 就將使用者登出系統。
+          authExp: new Date(dayjs().add(23, 'h').format())
         }
       })
     } catch (err) {

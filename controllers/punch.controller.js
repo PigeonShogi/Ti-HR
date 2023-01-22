@@ -1,7 +1,7 @@
 const { Employee, Punch } = require('../models')
 const { Op } = require('sequelize')
 const bcrypt = require('bcryptjs')
-const { today, timeSubtraction } = require('../tools/day')
+const { todayTaiwan, today, timeSubtraction } = require('../tools/day')
 const { ipArray } = require('../data/ip')
 const { roundToTwo } = require('../tools/math')
 
@@ -118,13 +118,14 @@ module.exports = {
     try {
       // 從資料表中找出當天的打卡記錄，若無則新建打卡記錄。
       const [punch, created] = await Punch.findOrCreate({
-        where: { EmployeeId: req.user.id, workingDay: today },
+        where: { EmployeeId: req.user.id, workingDay: todayTaiwan },
         defaults: {
-          workingDay: today,
+          workingDay: todayTaiwan,
           workingHours: 0,
           state: '完成上班打卡',
           EmployeeId: req.user.id
         },
+        nest: true,
         raw: true
       })
       // findOrCreate() 的結果若是新建打卡記錄（created === true）就顯示上班打卡成功
@@ -133,7 +134,7 @@ module.exports = {
           status: 200,
           message: '上班打卡成功'
         })
-        // findOrCreate() 的結果若是找到打卡記錄（created === undefined）就處理下班打卡邏輯
+        // findOrCreate() 的結果若是找到打卡記錄（created === false）就處理下班打卡邏輯
       } else if (!created) {
         // 計算上班打卡至目前為止的時間，計算結果為 n 小時。
         const workingHours = roundToTwo(
@@ -149,9 +150,10 @@ module.exports = {
         }
         await Punch.update(
           {
-            state
+            state,
+            workingHours
           },
-          { where: { EmployeeId: req.user.id } }
+          { where: { EmployeeId: req.user.id, workingDay: todayTaiwan } }
         )
         res.status(200).json({
           status: 200,
@@ -186,6 +188,15 @@ module.exports = {
         throw err
       }
       // 調用 postPunch
+      next()
+    } catch (err) {
+      next(err)
+    }
+  },
+  // GET /api/punches/demo 掃描二維碼打卡（Demo 專用，無加密、不審核IP）
+  twoDCodePunchDemo: (req, res, next) => {
+    try {
+      // 調用 postPunch（掃描二維碼無法發出POST請求，需轉交下個中介軟體處理）
       next()
     } catch (err) {
       next(err)

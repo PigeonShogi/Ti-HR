@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs')
 const { Employee } = require('../models')
-const { generateEncryptedQR } = require('../tools/qr-code')
+const { generateEncryptedQR, generateDemoQR } = require('../tools/qr-code')
 const { today } = require('../tools/day')
 
 module.exports = {
@@ -35,10 +35,13 @@ module.exports = {
         req.user.today,
         process.env.PUNCH_URL
       )
+      // 生成 Demo 專用二維碼（無加密、不檢查IP）
+      const qrCodeDemo = await generateDemoQR(process.env.PUNCH_URL)
       res.status(200).json({
         status: 200,
         message: '成功取得打卡二維碼',
-        punchCode: qrCode
+        punchCode: qrCode,
+        punchCodeDemo: qrCodeDemo
       })
     } catch (err) {
       next(err)
@@ -81,22 +84,29 @@ module.exports = {
   // POST /api/employees 人資 admin 可以新增一筆員工記錄
   postEmployee: async (req, res, next) => {
     try {
-      const { code, fullName } = req.body
+      const { code, fullName, identity } = req.body
       // 如果使用者身份非 admin，拒絕請求
       if (req.user.identity !== 'admin') {
         const err = new Error('你的權限無法提出此請求')
         err.status = 403
         throw err
       }
-      // 如果未送出員工編號或姓名，拒絕請求。
-      if (!code || !fullName) {
-        const err = new Error('員工編號及姓名都是必填')
+      // 如果有欄位未填，拒絕請求。
+      if (!code || !fullName || !identity) {
+        const err = new Error('所有欄位都是必填')
         err.status = 403
         throw err
       }
+      // 一般員工的預設密碼為 titaner；管理者的預設密碼為 tiadmin
+      let password = 'titaner'
+      if (identity === 'admin') {
+        password = 'tiadmin'
+      }
       const newEmployee = await Employee.create({
         code,
-        fullName
+        fullName,
+        identity,
+        password: bcrypt.hashSync(password, bcrypt.genSaltSync(10))
       })
       res.status(200).json({
         status: 200,

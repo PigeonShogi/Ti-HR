@@ -6,7 +6,7 @@ module.exports = {
     const transaction = await queryInterface.sequelize.transaction()
     try {
       await queryInterface.addColumn('Punches', 'working_hours', {
-        type: Sequelize.DECIMAL,
+        type: Sequelize.DECIMAL(4, 2),
         allowNull: false
       })
       await transaction.commit()
