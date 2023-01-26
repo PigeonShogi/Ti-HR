@@ -5,7 +5,8 @@
 本專案為人資系統網站的後端程式碼，目前版本可提供使用者 GPS 定位打卡、二維碼打卡、人資管理者查閱打卡記錄、系統每日提示出勤狀態異常人數等功能。<br>專案核心技術為 Node.js、MySQL、RESTful APIs，透過後端伺服器及資料庫之 CRUD 操作，可為前端瀏覽器提供各種服務，實現前後端分離開發及整合應用。
 ## 專案功能詳述
 本專案各項功能之詳細介紹揭示於本儲存庫的 [Wiki 頁面](https://github.com/PigeonShogi/Ti-HR/wiki/%E5%B0%88%E6%A1%88%E5%8A%9F%E8%83%BD%E8%A9%B3%E8%BF%B0)。
-<br>
+## 產品規格
+本專案之產品規格揭示於本儲存庫的 [Wiki 頁面](https://github.com/PigeonShogi/Ti-HR/wiki/產品規格)
 ##### 本專案前端 repo
 
 - https://github.com/PigeonShogi/Ti-HR-Client
